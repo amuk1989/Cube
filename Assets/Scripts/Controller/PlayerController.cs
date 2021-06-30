@@ -8,7 +8,9 @@ namespace CubeAdvetures
         #region Serialized
 
         [SerializeField] private Animator _animator;
-        [SerializeField] private float _speed = 1f;
+        [SerializeField] private Transform _playerTransform;
+        [SerializeField] private float _speed;
+        [SerializeField] private float _speedRotation = 0.5f;
         [SerializeField] private int _step = 1;
 
         #endregion
@@ -16,43 +18,38 @@ namespace CubeAdvetures
         #region Variables
 
         private bool isCanCommand = true;
-        private float _timeCount = 10.0f;
-        private Transform _playerTrasform;
+        private float _timeCount = 0.0f;
         private Vector3 _destinatePosition;
-        private Vector3 _direction = Vector3.zero;
+        private Vector3 _forwardDirection = Vector3.forward;
         private Quaternion _destinateRotation;
 
         #endregion
+
+        #region Methods
         public void Inicilize()
         {
-            _playerTrasform = gameObject.transform;
-            _destinatePosition = _playerTrasform.position;
-            _destinateRotation = _playerTrasform.rotation;
+            _destinatePosition = _playerTransform.position;
+            _destinateRotation = _playerTransform.rotation;
+            _playerTransform.position = Vector3.zero;
+            _playerTransform.rotation = Quaternion.Euler(Vector3.zero);
         }
 
         public void Updating()
         {
-            if (!isCanCommand)
+            _playerTransform.position = Vector3.Lerp(_playerTransform.position, _destinatePosition, _timeCount);
+            _timeCount += Time.deltaTime * 0.1f;
+            _playerTransform.rotation = Quaternion.Slerp(_playerTransform.rotation, _destinateRotation, _timeCount);
+            _timeCount += Time.deltaTime * _speedRotation;
+
+            if (
+                (_playerTransform.position == _destinatePosition)
+                &&
+                (Quaternion.Angle(transform.rotation, _destinateRotation) < 0.05)
+                )
             {
-                if (Vector3.Distance(_playerTrasform.position, _destinatePosition) > 0.01)
-                {
-                    _playerTrasform.position += _direction * Time.deltaTime * _speed;
-                }
-
-                if (
-                    (Quaternion.Angle(_playerTrasform.rotation, _destinateRotation) <= 0.01)
-                    &&
-                    (Vector3.Distance(_playerTrasform.position, _destinatePosition) <= 0.01)
-                    )
-                {
-                    _playerTrasform.position = _destinatePosition;
-                    _playerTrasform.rotation = _destinateRotation;
-                    _timeCount = 0;
-                    isCanCommand = true;
-                }
-
+                isCanCommand = true;
+                _timeCount = 0;
             }
-            
         }
 
         public void MoveTo(Direction direction)
@@ -62,40 +59,52 @@ namespace CubeAdvetures
                 switch (direction)
                 {
                     case Direction.Forward:
-                        Debug.Log("F");
-                        _direction = Vector3.forward * _step;
+                        _destinatePosition += _forwardDirection * _step;
+                        _animator.SetTrigger("Forward");
                         isCanCommand = false;
                         break;
                     case Direction.Back:
-                        Debug.Log("B");
-                        _direction = Vector3.back * _step;
+                        _destinatePosition -= _forwardDirection * _step;
+                        _animator.SetTrigger("Back");
                         isCanCommand = false;
                         break;
                     case Direction.Right:
-                        Debug.Log("R");
-                        _destinateRotation = RotateTo(_destinateRotation, Vector3.right);
+                        _destinateRotation = RotateTo(_destinateRotation, Vector3.up);
+                        _forwardDirection = RotateVector(_forwardDirection, RotateDirection.ClockWise);
                         isCanCommand = false;
                         break;
                     case Direction.Left:
-                        Debug.Log("L");
+                        _destinateRotation = RotateTo(_destinateRotation, Vector3.down);
+                        _forwardDirection = RotateVector(_forwardDirection, RotateDirection.ConterClockWise);
                         isCanCommand = false;
                         break;
                     default:
-                        Debug.Log("Unknow");
-                        _direction = Vector3.zero;
                         break;
                 }
-                _destinatePosition += _direction;
             }
         }
 
         private Quaternion RotateTo(Quaternion startRotate, Vector3 axesOfRotation)
         {
-            var from = startRotate.eulerAngles;
-            var to = from + (axesOfRotation * 90);
-            var result = Quaternion.Euler(to);
+            var from = Quaternion.Euler(startRotate.eulerAngles);
+            var to = Quaternion.Euler(from.eulerAngles + (axesOfRotation * 90));
+            var result = to;
             return result;
         }
 
+        private Vector3 RotateVector(Vector3 vector, RotateDirection rotateDirection)
+        {
+            Vector3 result;
+            if (rotateDirection == RotateDirection.ClockWise)
+            {
+                result = new Vector3(vector.z, vector.y, -vector.x);
+            }
+            else
+            {
+                result = new Vector3(-vector.z, vector.y, vector.x);
+            }
+            return result;
+        }
+        #endregion
     }
 }

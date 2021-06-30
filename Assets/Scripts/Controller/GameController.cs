@@ -7,12 +7,15 @@ namespace CubeAdvetures
     {
         #region Serializable
 
-        [SerializeField] private PlayerController _playerController;
+        [SerializeField] private LevelController _levelController;
+        [SerializeField] private GameObject _charackter;
+        [SerializeField] private Transform _playerSpawner;
 
         #endregion
 
         private List<IController> _controllers;
         private InputController _inputController;
+        private PlayerController _playerController;
 
         private void Start()
         {
@@ -26,6 +29,7 @@ namespace CubeAdvetures
 
         public void Inicilize()
         {
+            _playerController = Instantiate(_charackter, _playerSpawner).GetComponent<PlayerController>();
             _controllers = new List<IController>();
             _inputController = new InputController();
             _controllers.Add(_inputController);

@@ -59,7 +59,9 @@
     <Compile Include="Assets\Scripts\Enums\Direction.cs" />
     <Compile Include="Assets\Scripts\Controller\InputController.cs" />
     <Compile Include="Assets\Scripts\Interface\IController.cs" />
+    <Compile Include="Assets\Scripts\Enums\RotateDirection.cs" />
     <Compile Include="Assets\Scripts\Controller\GameController.cs" />
+    <Compile Include="Assets\Scripts\Controller\LevelController.cs" />
     <Compile Include="Assets\Scripts\Controller\OptionController.cs" />
     <Compile Include="Assets\Scripts\Controller\PlayerController.cs" />
   </ItemGroup>
